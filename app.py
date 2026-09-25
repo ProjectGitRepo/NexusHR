@@ -31,15 +31,22 @@ from agents.attrition_agent import (
     seed_attrition_risks
 )
 from agents.ai_connector import get_active_ai_provider
+from seed_data import seed_all
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
-CORS(app)
+# Enable open CORS for cross-origin requests from Vercel
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
-# Ensure database is initialized on startup
+# Ensure database is initialized and populated with demo data on startup
 with app.app_context():
     init_db()
-    seed_policy_documents()
-    seed_attrition_risks()
+    seed_all()
+
+# ── HEALTH CHECK ROUTE (for Render / uptime monitors) ──
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for Render service monitoring."""
+    return jsonify({"status": "healthy", "platform": "NexusHR Autonomous HR Backend"}), 200
 
 # ── FRONTEND ROUTE ──
 @app.route('/')
