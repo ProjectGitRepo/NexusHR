@@ -145,11 +145,15 @@ NexusHR connects into standard enterprise SaaS stacks:
 
 ```
 d:/HR_Ops/
-├── app.py                      # Main Flask application & RESTful endpoints
+├── index.html                  # Root Single-Page App (Landing Page + Login + HR Command Center for Vercel)
+├── app.py                      # Main Flask application & RESTful endpoints (for Render / Local)
+├── Procfile                    # Render / Heroku process declaration (gunicorn app:app)
+├── render.yaml                 # Render Blueprint configuration for 1-click backend deployment
+├── vercel.json                 # Vercel SPA routing and clean URL configuration
 ├── database.py                 # SQLite database schema, connections & models
 ├── seed_data.py                # Enterprise demo data seeder
 ├── test_backend.py             # Automated backend integration test suite
-├── requirements.txt            # Python dependencies (Flask, Flask-CORS)
+├── requirements.txt            # Python dependencies (Flask, Flask-CORS, Gunicorn)
 ├── .env.example                # Sample environment config for optional live AI models
 ├── .gitignore                  # Git ignore rules for caches, envs, and OS files
 ├── nexushr.db                  # Local SQLite database instance (auto-seeded)
@@ -160,7 +164,7 @@ d:/HR_Ops/
 │   ├── policy_agent.py         # RAG-based Policy Copilot engine & citation manager
 │   └── attrition_agent.py      # Predictive flight-risk engine & retention action tracker
 ├── templates/
-│   └── index.html              # Modern dark-theme enterprise frontend dashboard
+│   └── index.html              # Jinja2 template mirror for local Flask rendering
 └── README.md                   # Project documentation & pitch presentation guide
 ```
 
@@ -204,7 +208,50 @@ python app.py
 
 ---
 
-## 9. REST API Reference
+## 9. 1-Click Free Tier Cloud Deployment (Render + Vercel)
+
+NexusHR is architected for zero-cost, high-reliability deployment using **Render** for the Python Flask backend and **Vercel** for the high-performance static frontend.
+
+```
+┌────────────────────────────────┐            ┌────────────────────────────────┐
+│   Vercel (Global Edge CDN)     │   HTTPS    │     Render (Web Service)       │
+│   https://nexushr.vercel.app   ├───────────►│   https://*.onrender.com       │
+│   Landing + Login + Dashboard  │  REST API  │   Flask + SQLite + AI Agents   │
+└────────────────────────────────┘            └────────────────────────────────┘
+```
+
+### Step 1: Deploy Backend to Render (Free)
+1. Push this repository to **GitHub**.
+2. Go to [Render Dashboard](https://dashboard.render.com/) and click **New + > Web Service**.
+3. Select your GitHub repository.
+4. Render will automatically detect the settings from `render.yaml` or you can manually enter:
+   - **Name:** `nexushr-backend`
+   - **Runtime:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `gunicorn app:app --bind 0.0.0.0:$PORT`
+   - **Instance Type:** `Free`
+5. Click **Create Web Service**. Once deployed, copy your Render URL (e.g. `https://nexushr-backend.onrender.com`).
+   *Health Check:* Visit `https://your-service.onrender.com/health` to confirm it returns `{"status":"healthy"}`.
+
+### Step 2: Deploy Frontend to Vercel (Free)
+1. Go to [Vercel Dashboard](https://vercel.com/) and click **Add New... > Project**.
+2. Import your GitHub repository.
+3. Keep default settings (Framework Preset: **Other**, Root Directory: `./`).
+4. Click **Deploy**. Vercel will serve `index.html` at the root and provide a live URL (e.g. `https://nexushr.vercel.app`).
+
+### Step 3: Connect Frontend to Backend (10 Seconds)
+1. Open your live Vercel URL in your browser.
+2. In the footer of the Landing Page (or the top header of the Dashboard), click the **`Backend: Auto-detecting...`** status pill.
+3. Paste your Render backend URL (e.g., `https://nexushr-backend.onrender.com`).
+4. Click **Test & Save**. The app will test the connection, display latency, and save the URL to your browser's `localStorage`.
+5. All live agent data, onboarding tasks, policy queries, and flight-risk actions are now live-synced!
+
+> **Pitch-Proof Guarantee (Cold-Start Resilient):**  
+> If Render's free tier enters sleep mode after inactivity, the frontend gracefully displays fallback sample data and displays `Render Waking Up (~30s)` so your pitch presentation and evaluator demos never show blank screens or broken loaders.
+
+---
+
+## 10. REST API Reference
 
 ### Onboarding Endpoints
 - `GET /api/hires` — List all new hires with structured onboarding task hierarchies.
@@ -232,7 +279,7 @@ python app.py
 
 ---
 
-## 10. Submission & Incubation Details
+## 11. Submission & Incubation Details
 
 - **Project:** NexusHR Autonomous Workforce Platform
 - **Pitch Fest:** BITSoM Vertex Builders' Pitch Fest 2026
